@@ -35,7 +35,8 @@ export default {
   setup()
   {
     //console.log('favorite: ');
-    const partialUrl = 'https://app.pokemon-api.xyz/pokemon/';
+    //const partialUrl = 'https://app.pokemon-api.xyz/pokemon/'; //// old api
+    const partialUrl = 'https://pokeapi.co/api/v2/pokemon/';
     const store = useStore();
     const favoriteIdsArrayLocal = ref(store.state.monsterStore.favoriteIdsArray);
     const favoriteMonstersArrayLocal = ref(store.state.monsterStore.favoriteMonstersArray);
@@ -64,10 +65,11 @@ export default {
         var newMonstersArray = [];
         for (const idItem of favoriteIdsArrayLocal.value)
         {
-          const favoriteUrl = partialUrl + idItem;
+          const favoriteUrl = partialUrl + idItem + '/';
           const response = await fetch(favoriteUrl);
           const dataJson = await response.json();
-          newMonstersArray = addDataToList(dataJson, newMonstersArray);
+          const newData = simplifyData(dataJson);
+          newMonstersArray = addDataToList(newData, newMonstersArray);
         }
         favoriteMonstersArrayLocal.value = newMonstersArray;
         doSetFavoriteMonstersArray(newMonstersArray);
@@ -76,6 +78,27 @@ export default {
       {
         console.log('favorite page: ', error);
       }
+    }
+
+    const simplifyData = (data) =>
+    {
+      //const imageUrl = data.sprites.front_default; //// backup image link
+      const imageUrl = 'https://img.pokemondb.net/artwork/large/' + data.name + '.jpg';
+      const newDataObject = 
+      {
+        id: data.id,
+        name: {
+          english: capitalizeWord(data.name)
+        },
+        hires: imageUrl
+      };
+      return newDataObject;
+    }
+
+    const capitalizeWord = (word) =>
+    {
+      let newWord = word.substr(0,1).toUpperCase() + word.substr(1);
+      return newWord;
     }
 
     const addDataToList = (dataItem, list) =>

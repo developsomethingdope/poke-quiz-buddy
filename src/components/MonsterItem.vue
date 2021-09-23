@@ -1,6 +1,7 @@
 <template>
   <div class="section-item" :class="isFavoriteLocal && 'section-item-favorite'">
     <div class="item-image">
+      <div class="item-gradient"></div>
       <!-- 
       <img :src="item_prop.image" :alt="item_prop.name">
       <img :src="require('@/assets/placeholder.png')" alt="placeholder">

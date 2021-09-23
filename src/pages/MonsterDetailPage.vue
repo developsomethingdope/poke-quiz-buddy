@@ -2,7 +2,7 @@
   <div>
     <div class="page-top">
       <div class="links">
-        <NavLinks link_type="ALL_LINK" />
+        <NavLinks link_type="ALL_LINKS" />
       </div>
       <div class="title">monster detail</div>
     </div>
@@ -71,7 +71,8 @@ export default {
   setup(props)
   {
     //console.log('detail: ');
-    const partialUrl = 'https://app.pokemon-api.xyz/pokemon/';
+    //const partialUrl = 'https://app.pokemon-api.xyz/pokemon/'; //// old api
+    const partialUrl = 'https://pokeapi.co/api/v2/';
     const store = useStore();
     const monsterItem = ref({});
     const doSetIsLinkToDetail = (isLinkToDetail) => store.dispatch('doSetIsLinkToDetail', isLinkToDetail);
@@ -96,29 +97,170 @@ export default {
         {
           updateMonsterNextForm(monsterId, null);
         }
+
+        const detailUrl1 = partialUrl + 'pokemon/' + monsterId + '/';
+        const response1 = await fetch(detailUrl1);
+        const dataJson1 = await response1.json();
+        //console.log('detail1: ', dataJson1);
         
-        const detailUrl = partialUrl + monsterId;
-        const response = await fetch(detailUrl);
-        const dataJson = await response.json();
-        var newMonster = {};
         if (detailType === 'FULL_DETAIL')
         {
-          newMonster = parseDataToFullDetail(dataJson);
+          //const detailUrl2 = partialUrl + 'pokemon-species/' + monsterId + '/';
+          const detailUrl2 = dataJson1.species.url;
+          const response2 = await fetch(detailUrl2);
+          const dataJson2 = await response2.json();
+          
+          var evolutionArray = [];
+          const maxEvolutionChainNum = 3;
+          evolutionArray.push(dataJson2.name);
+          if (dataJson2.evolves_from_species)
+          {
+            let detailUrl3 = '';
+            var dataJson3 = null;
+            for (let i = 0; i < maxEvolutionChainNum - 1; i++)
+            {
+              if (i === 0)
+              {
+                detailUrl3 = dataJson2.evolves_from_species.url;
+              }
+              else
+              {
+                detailUrl3 = dataJson3.evolves_from_species.url;
+              }
+              const response3 = await fetch(detailUrl3);
+              dataJson3 = await response3.json();
+              evolutionArray.push(dataJson3.name);
+              if (!dataJson3.evolves_from_species)
+              {
+                break;
+              }
+            }
+          }
+          evolutionArray.reverse();
+          //console.log('detail evoArray: ', evolutionArray);
+
+          var dataJson4 = null;
+          if (evolutionArray.length < maxEvolutionChainNum)
+          {
+            const detailUrl4 = dataJson2.evolution_chain.url;
+            const response4 = await fetch(detailUrl4);
+            dataJson4 = await response4.json();
+          }
+          
+          const newData = simplifyData(dataJson1, dataJson2, dataJson4, evolutionArray);
+          //console.log('detail newData: ', newData);
+          var newMonster = parseDataToFullDetail(newData);
           monsterItem.value = newMonster;
         }
         else if (detailType === 'NEXT_FORM_DETAIL')
         {
-          updateMonsterNextForm(monsterId, dataJson);
+          updateMonsterNextForm(monsterId, dataJson1);
         }
         else
         {
-          monsterItem.value.previousForm.name = dataJson.name.english;
+          monsterItem.value.previousForm.name = capitalizeWord(dataJson1.name);
         }
       }
       catch(error)
       {
         console.log('detail page: ', error);
       }
+    }
+
+    const simplifyData = (data1, data2, data4, evolutionArray) =>
+    {
+      //const imageUrl = data1.sprites.front_default; //// backup image link
+      const imageUrl = 'https://img.pokemondb.net/artwork/large/' + data1.name + '.jpg';
+      var newTypeArray = [];
+      for (let i = 0; i < data1.types.length; i++)
+      {
+        newTypeArray[i] = data1.types[i].type.name;
+      }
+      const newHeightInMeters = data1.height / 10;
+      const heightString = newHeightInMeters + ' m';
+      const newWeightInKg = data1.weight / 10;
+      const weightString = newWeightInKg + ' kg';
+      let flavorTextString = '';
+      const flavorTextArray = data2.flavor_text_entries;
+      for (const flavorTextItem of flavorTextArray)
+      {
+        if (flavorTextItem.language.name === "en")
+        {
+          flavorTextString = flavorTextItem.flavor_text;
+          break;
+        }
+      }
+      var evolveFromIdArray = null;
+      if (data2.evolves_from_species)
+      {
+        const evolveFromUrl = data2.evolves_from_species.url;
+        evolveFromIdArray = [extractIdFromUrl(evolveFromUrl)];
+      }
+      var evolveToIdArray = null;
+      if (evolutionArray.length === 1 && data4.chain.evolves_to.length > 0)
+      {
+        evolveToIdArray = [];
+        const firstFormEvolvesToArray = data4.chain.evolves_to;
+        for (const firstFormEvolvesToItem of firstFormEvolvesToArray)
+        {
+          const firstFormEvolvesToItemUrl = firstFormEvolvesToItem.species.url;
+          evolveToIdArray.push(extractIdFromUrl(firstFormEvolvesToItemUrl));
+        }
+      }
+      else if (evolutionArray.length === 2)
+      {
+        const firstFormEvolvesToArray = data4.chain.evolves_to;
+        for (const firstFormEvolvesToItem of firstFormEvolvesToArray)
+        {
+          if (firstFormEvolvesToItem.species.name === evolutionArray[1])
+          {
+            if (firstFormEvolvesToItem.evolves_to.length > 0)
+            {
+              evolveToIdArray = [];
+              const secondFormEvolvesToArray = firstFormEvolvesToItem.evolves_to;
+              for (const secondFormEvolvesToItem of secondFormEvolvesToArray)
+              {
+                const secondFormEvolvesToItemUrl = secondFormEvolvesToItem.species.url;
+                evolveToIdArray.push(extractIdFromUrl(secondFormEvolvesToItemUrl));
+              }
+            }
+            break;
+          }
+        }
+      }
+      
+      const newDataObject = 
+      {
+        id: data1.id,
+        name: {
+          english: capitalizeWord(data1.name)
+        },
+        hires: imageUrl,
+        description: flavorTextString,
+        profile: {
+          height: heightString,
+          weight: weightString
+        },
+        evolution: {
+          prev: evolveFromIdArray,
+          next: evolveToIdArray
+        },
+        type: newTypeArray
+      };
+      return newDataObject;
+    }
+
+    const extractIdFromUrl = (url) =>
+    {
+      const urlArray = url.split("/");
+      const id = parseInt(urlArray[urlArray.length - 2]);
+      return id;
+    }
+    
+    const capitalizeWord = (word) =>
+    {
+      let newWord = word.substr(0,1).toUpperCase() + word.substr(1);
+      return newWord;
     }
 
     const updateMonsterNextForm = (monsterId, data) =>
@@ -129,7 +271,7 @@ export default {
         {
           if (data)
           {
-            monsterItem.value.nextFormArray[i].name = data.name.english;
+            monsterItem.value.nextFormArray[i].name = capitalizeWord(data.name);
           }
           else
           {
@@ -160,9 +302,9 @@ export default {
       }
       if (data.evolution.next)
       {
-        for (const nextItemArray of data.evolution.next)
+        for (const nextItemId of data.evolution.next)
         {
-          newNextFormArray.push({ id: nextItemArray[0], name: '' });
+          newNextFormArray.push({ id: nextItemId, name: '' });
         }
       }
       let newType = '';

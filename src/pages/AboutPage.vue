@@ -8,7 +8,7 @@
     </div>
 
     <div class="page-bottom section-about" :class="generalStore.isFavoriteAbout && 'section-about-favorite'">
-      <div class="section-subtitle">Poke-Quiz-Buddy v1.0</div>
+      <div class="section-subtitle">Poke-Quiz-Buddy v1.2</div>
       <div class="about-favorite">
         <div class="favorite-toggle">
           <div v-if="generalStore.isFavoriteAbout" class="toggle-label">Favorite</div>
@@ -26,11 +26,11 @@
         <li>Show favorite monsters</li>
         <li>More info for each monster</li>
         <li>Create quiz</li>
-        <li>Data taken from <a href="https://purukitto.github.io/pokemon-api/">API 1</a> and <a href="https://opentdb.com/api_config.php">API 2</a></li>
+        <li>Data taken from <a href="https://pokeapi.co">API 1</a> and <a href="https://opentdb.com/api_config.php">API 2</a></li>
       </ul>
       <p>
         Source: <a href="https://github.com/developsomethingdope/poke-quiz-buddy">GitHub</a><br />
-        See more: <a href="https://develop-something-dope.netlify.app">My Porfolio website</a><br />
+        See more: <a href="https://develop-something-dope.netlify.app">My Portfolio website</a><br />
         About me: <a href="https://www.linkedin.com/in/edward-kwong-03a783184">Linkedin</a><br /><br />
         Copyright &copy; {{ currentYear }}
       </p>

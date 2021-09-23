@@ -1,6 +1,7 @@
 <template>
   <div class="section-item">
     <div v-if="item_prop.question.startsWith('http')" class="item-image">
+      <div class="item-gradient"></div>
       <!-- 
       <img :src="item_prop.question" :alt="item_prop.id">
       <img :src="require('@/assets/placeholder.png')" alt="placeholder">

@@ -80,6 +80,7 @@ const monsterModule =
   state()
   {
     return {
+      totalNumOfMonsters: 0,
       numOfRandomMonsters: 4,
       randomMonstersArray: [],
       favoriteIdsArray: localStorageIdsArray,
@@ -88,6 +89,10 @@ const monsterModule =
   },
   mutations:
   {
+    setTotalNumOfMonsters(state, payload)
+    {
+      state.totalNumOfMonsters = payload;
+    },
     setRandomMonstersArray(state, payload)
     {
       state.randomMonstersArray = payload;
@@ -103,6 +108,10 @@ const monsterModule =
   },
   actions:
   {
+    doSetTotalNumOfMonsters(context, payload)
+    {
+      context.commit('setTotalNumOfMonsters', payload);
+    },
     doSetRandomMonstersArray(context, payload)
     {
       context.commit('setRandomMonstersArray', payload);

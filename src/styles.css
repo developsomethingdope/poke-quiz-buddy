@@ -360,8 +360,9 @@ body
   border: 5px solid var(--main-blue);
 }
 
-.item-image
+.item-gradient
 {
+  height: 50px;
   background: var(--gradient-color-vertical);
 }
 

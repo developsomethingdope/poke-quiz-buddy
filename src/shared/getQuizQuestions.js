@@ -4,7 +4,8 @@ const getQuizQuestions = () =>
 {
   //console.log('getQuizQuestsions: ');
   const partialTriviaUrl = 'https://opentdb.com/api.php?';
-  const monsterTypesUrl = 'https://app.pokemon-api.xyz/types/all';
+  //const monsterTypesUrl = 'https://app.pokemon-api.xyz/types/all'; //// old api
+  const monsterTypesUrl = 'https://pokeapi.co/api/v2/type/';
   const store = useStore();
   const doSetQuestionsArray = (questionsArray) => store.dispatch('doSetQuestionsArray', questionsArray);
   const doSetIncompleteIdObjectsArray = (incompleteArray) => store.dispatch('doSetIncompleteIdObjectsArray', incompleteArray);
@@ -70,9 +71,13 @@ const getQuizQuestions = () =>
       const response = await fetch(monsterTypesUrl);
       const dataJson = await response.json();
       var dataTypesArray = [];
-      for (const dataItem of dataJson)
+      for (const dataItem of dataJson.results)
       {
-        dataTypesArray.push(dataItem.english);
+        const typeId = extractIdFromUrl(dataItem.url);
+        if (typeId < 10000)
+        {
+          dataTypesArray.push(dataItem.name);
+        }
       }
       newQuestionsArray = parseMonsterTypesData(dataTypesArray, numQuestions);
       newQuestionsArray.sort(() => Math.random() - 0.5);
@@ -84,6 +89,13 @@ const getQuizQuestions = () =>
       console.log('getQuizQuestsions: ', error);
     }
     return newQuestionsArray;
+  }
+  
+  const extractIdFromUrl = (url) =>
+  {
+    const urlArray = url.split("/");
+    const id = parseInt(urlArray[urlArray.length - 2]);
+    return id;
   }
 
   const parseMonsterTypesData = (dataArray, numQuestions) =>
@@ -169,7 +181,7 @@ const getQuizQuestions = () =>
     }
     return newQuestionsArray;
   }
-
+  
   const parseTriviaData = (dataArray) =>
   {
     const newQuestionsArray = [];
@@ -215,7 +227,7 @@ const getQuizQuestions = () =>
     }
     return newQuestionsArray;
   }
-
+  
   //// EXPORT FUNCTIONS
 
   const getQuestions = (numQuestions, categoryArray) =>
