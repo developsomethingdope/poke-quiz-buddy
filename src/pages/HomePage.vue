@@ -22,6 +22,7 @@ import { computed } from 'vue';
 import { useStore } from "vuex";
 import MonsterList from "../components/MonsterList";
 import BackToTop from "../components/BackToTop";
+import getMonsterImageLink from '../shared/getMonsterImageLink';
 
 export default {
   name: 'HomePage',
@@ -43,6 +44,7 @@ export default {
     const doSetTotalNumOfMonsters = (totalNum) => { store.dispatch('doSetTotalNumOfMonsters', totalNum); };
     const doSetRandomMonstersArray = (monstersArray) => store.dispatch('doSetRandomMonstersArray', monstersArray);
     const doSetIsLinkToDetail = (isLinkToDetail) => store.dispatch('doSetIsLinkToDetail', isLinkToDetail);
+    const { getImageLink } = getMonsterImageLink();
     
     //// FUNCTIONS
 
@@ -86,17 +88,16 @@ export default {
         
         for (let i = 0; i < numOfRandomMonsters; i++)
         {
-          let idLocal = '';
-          var dataJson = null;
+          let randomId = 0;
           do
           {
-            const randomId = Math.floor(Math.random() * totalNumMonsters) + 1;
-            const randomUrl = partialRandomUrl + randomId + '/';
-            const response = await fetch(randomUrl);
-            dataJson = await response.json();
-            idLocal = dataJson.id;
-          } while (idsObject[idLocal]);
-          idsObject[idLocal] = true;
+            randomId = Math.floor(Math.random() * totalNumMonsters) + 1;
+          } while (idsObject[randomId]);
+          idsObject[randomId] = true;
+
+          const randomUrl = partialRandomUrl + randomId + '/';
+          const response = await fetch(randomUrl);
+          const dataJson = await response.json();
           const newData = simplifyData(dataJson);
           newMonstersArray = addDataToList(newData, newMonstersArray);
           //console.log('home: ', idsObject);
@@ -113,7 +114,7 @@ export default {
     {
       var newTypeArray = [];
       //const imageUrl = data.sprites.front_default; //// backup image link
-      const imageUrl = 'https://img.pokemondb.net/artwork/large/' + data.name + '.jpg';
+      const imageUrl = getImageLink(data.id, data.name);
       for (let i = 0; i < data.types.length; i++)
       {
         newTypeArray[i] = data.types[i].type.name;

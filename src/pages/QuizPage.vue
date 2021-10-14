@@ -7,18 +7,7 @@
       <div class="title">generate questions</div>
     </div>
     <div class="page-bottom section-quiz">
-      <div class="quiz-amount-area">
-        <div class="button button-quiz-amount" @click="amountButtonClickHandler">{{ amountButtonText }}</div>
-        <div v-show="isShowAmountSelection" class="selection-quiz-amount">
-          <div 
-          v-for="(amountItem, index) in quizAmountArray" 
-          :key="index" 
-          class="button-selection-amount" 
-          @click="amountSelectClickHandler(amountItem)" 
-          :class="numQuestions === amountItem ? 'button-selection-selected' : 'button-selection-unselected'"
-          >{{ amountItem }}</div>
-        </div>
-      </div>
+      <QuizAmountButton />
       <div class="quiz-category-area">
         <div v-if="categoryArray.length < 1" class="button button-quiz-category-disabled">{{ categoryButtonText }}</div>
         <div v-else class="button button-quiz-category" @click="categoryButtonClickHandler">{{ categoryButtonText }}</div>
@@ -62,13 +51,14 @@
 </template>
 
 <script>
-import NavLinks from "../components/NavLinks";
+import NavLinks from '../components/NavLinks';
 import { ref, computed, watch } from 'vue';
 import { useStore } from 'vuex';
-import getQuizQuestions from "../shared/getQuizQuestions";
-import Loading from "../components/Loading";
-import QuestionItem from "../components/QuestionItem";
-import BackToTop from "../components/BackToTop";
+import getQuizQuestions from '../shared/getQuizQuestions';
+import Loading from '../components/Loading';
+import QuestionItem from '../components/QuestionItem';
+import BackToTop from '../components/BackToTop';
+import QuizAmountButton from '../components/QuizAmountButton';
 
 export default {
   name: 'FavoritePage',
@@ -77,21 +67,17 @@ export default {
     NavLinks,
     Loading,
     QuestionItem,
-    BackToTop
+    BackToTop,
+    QuizAmountButton
   },
   setup()
   {
     //console.log('quiz: ');
     const categoryUrl = 'https://opentdb.com/api_category.php';
-    const quizAmountArray = ref(['2', '4', '6', '8', '10']);
     const stringSeperator = ':::';
     const store = useStore();
 
-    const amountButtonTextInstruction = 'Select number of questions';
-    const amountButtonText = ref(amountButtonTextInstruction);
     const numQuestions = computed(() => store.state.quizStore.numOfQuestions);
-    const doSetNumOfQuestions = (numOfQuestions) => store.dispatch('doSetNumOfQuestions', numOfQuestions);
-    const isShowAmountSelection = computed(() => store.state.generalStore.isShowQuizAmountSelection);
     const doSetIsShowQuizAmountSelection = (isShowQuizAmountSelection) => store.dispatch('doSetIsShowQuizAmountSelection', isShowQuizAmountSelection);
     
     const categoryButtonTextInstruction = 'Select category';
@@ -106,7 +92,8 @@ export default {
     const doSetIsQuizCategoryAscendOrder = (isQuizCategoryAscendOrder) => store.dispatch('doSetIsQuizCategoryAscendOrder', isQuizCategoryAscendOrder);
 
     const createQuizMessage = ref('');
-    const isShowMessage = ref(false);
+    const isShowMessage = computed(() => store.state.quizStore.isShowMessage);
+    const doSetIsShowMessage = (newIsShowMessage) => store.dispatch('doSetIsShowMessage', newIsShowMessage);
     const isEnableCreateQuizButton = ref(true);
     
     const { getQuestions, resetQuestions } = getQuizQuestions();
@@ -151,10 +138,6 @@ export default {
 
     const init = () =>
     {
-      if (numQuestions.value)
-      {
-        amountButtonText.value = 'Number Selected: ' + numQuestions.value + ' questions';
-      }
       if (categorySelected.value)
       {
         categoryButtonText.value = 'Category Selected: ' + categorySelected.value;
@@ -221,34 +204,28 @@ export default {
 
     watch(questionsArray, () =>
     {
-      //console.log('quiz : watch: ', questionsArray.value);
+      //console.log('quiz: watch: ', questionsArray.value);
       if (questionsArray.value.length > 0)
       {
         isEnableCreateQuizButton.value = true;
       }
     });
 
+    watch(isShowCategorySelection, () =>
+    {
+      if (!isShowCategorySelection.value && categorySelected.value)
+      {
+        categoryButtonText.value = 'Category Selected: ' + categorySelected.value;
+      }
+    });
+
     //// EVENT HANDLER
-
-    const amountButtonClickHandler = () =>
-    {
-      doSetIsShowQuizAmountSelection(true);
-      amountButtonText.value = amountButtonTextInstruction;
-      isShowMessage.value = false;
-    }
-
-    const amountSelectClickHandler = (amount) =>
-    {
-      doSetNumOfQuestions(amount);
-      doSetIsShowQuizAmountSelection(false);
-      amountButtonText.value = 'Number Selected: ' + amount + ' questions';
-    }
 
     const categoryButtonClickHandler = () =>
     {
       doSetIsShowQuizCategorySelection(true);
       categoryButtonText.value = categoryButtonTextInstruction;
-      isShowMessage.value = false;
+      doSetIsShowMessage(false);
     }
 
     const categorySelectClickHandler = (category) =>
@@ -301,12 +278,12 @@ export default {
       if (createQuizMessage.value)
       {
         //// show errors
-        isShowMessage.value = true;
+        doSetIsShowMessage(true);
       }
       else
       {
         //// show questions
-        isShowMessage.value = false;
+        doSetIsShowMessage(false);
         var selectedCategoryArray = null;
         for (const categoryItemArray of categoryArray.value)
         {
@@ -339,8 +316,8 @@ export default {
     //// START
 
     init();
-
-    return { quizAmountArray, numQuestions, amountButtonText, amountButtonClickHandler, isShowAmountSelection, amountSelectClickHandler, categoryArray, categorySelected, categoryButtonText, categoryButtonClickHandler, isShowCategorySelection, categorySelectClickHandler, isCategoryAscendOrder, ascendOrderClickHandler, descendOrderClickHandler, createButtonClickHandler, createQuizMessage, isShowMessage, questionsArray, isEnableCreateQuizButton, isShowQuestions, incompleteIdObjectsArray, statusText, resetButtonClickHandler };
+    
+    return { categoryArray, categorySelected, categoryButtonText, categoryButtonClickHandler, isShowCategorySelection, categorySelectClickHandler, isCategoryAscendOrder, ascendOrderClickHandler, descendOrderClickHandler, createButtonClickHandler, createQuizMessage, isShowMessage, questionsArray, isEnableCreateQuizButton, isShowQuestions, incompleteIdObjectsArray, statusText, resetButtonClickHandler };
   }
 }
 </script>

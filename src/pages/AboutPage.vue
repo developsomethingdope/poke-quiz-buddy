@@ -8,7 +8,7 @@
     </div>
 
     <div class="page-bottom section-about" :class="generalStore.isFavoriteAbout && 'section-about-favorite'">
-      <div class="section-subtitle">Poke-Quiz-Buddy v1.2</div>
+      <div class="section-subtitle">Poke-Quiz-Buddy v1.4</div>
       <div class="about-favorite">
         <div class="favorite-toggle">
           <div v-if="generalStore.isFavoriteAbout" class="toggle-label">Favorite</div>

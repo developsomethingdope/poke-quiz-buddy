@@ -39,8 +39,8 @@ export default {
   props: ['item_prop'],
   setup(props)
   {
-    const local_storage_key = 'poke-quiz-buddy-app-id-array';
     const store = useStore();
+    const localStorageKeyLocal = store.state.monsterStore.localStorageKey;
     const isFavoriteLocal = ref(props.item_prop.isFavorite);
     const doSetFavoriteIdsArray = (idsArray) => { store.dispatch('doSetFavoriteIdsArray', idsArray); };
     const doSetRandomMonstersArray = (monstersArray) => { store.dispatch('doSetRandomMonstersArray', monstersArray); };
@@ -70,7 +70,7 @@ export default {
           break;
         }
       }
-      localStorage.setItem(local_storage_key, JSON.stringify(localStorageIdsArray));
+      localStorage.setItem(localStorageKeyLocal, JSON.stringify(localStorageIdsArray));
       doSetFavoriteIdsArray(localStorageIdsArray);
       doSetRandomMonstersArray(randomArrayLocal);
       isFavoriteLocal.value = !isFavoriteLocal.value;

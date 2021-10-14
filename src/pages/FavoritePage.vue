@@ -23,6 +23,7 @@ import { useStore } from 'vuex';
 import { ref } from 'vue';
 import MonsterList from "../components/MonsterList";
 import BackToTop from "../components/BackToTop";
+import getMonsterImageLink from '../shared/getMonsterImageLink';
 
 export default {
   name: 'FavoritePage',
@@ -44,6 +45,7 @@ export default {
     const doSetFavoriteMonstersArray = (monsterArray) => store.dispatch('doSetFavoriteMonstersArray', monsterArray);
     const isIdsArrayChangedLocal = store.state.generalStore.isIdsArrayChanged;
     const doSetIsIdsArrayChanged = (isArrayChanged) => store.dispatch('doSetIsIdsArrayChanged', isArrayChanged);
+    const { getImageLink } = getMonsterImageLink();
 
     //// FUNCTIONS
 
@@ -83,7 +85,7 @@ export default {
     const simplifyData = (data) =>
     {
       //const imageUrl = data.sprites.front_default; //// backup image link
-      const imageUrl = 'https://img.pokemondb.net/artwork/large/' + data.name + '.jpg';
+      const imageUrl = getImageLink(data.id, data.name);
       const newDataObject = 
       {
         id: data.id,

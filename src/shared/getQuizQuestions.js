@@ -102,9 +102,10 @@ const getQuizQuestions = () =>
   {
     var newQuestionsArray = [];
     var newRandomMonstersArray = [...store.state.monsterStore.randomMonstersArray];
-    if (numQuestions < newRandomMonstersArray.length)
+    const newNumQuestions = parseInt(numQuestions);
+    if (newNumQuestions < newRandomMonstersArray.length)
     {
-      newRandomMonstersArray = smallerRandomArray(newRandomMonstersArray, numQuestions);
+      newRandomMonstersArray = smallerRandomArray(newRandomMonstersArray, newNumQuestions);
     }
     for (const monsterItem of newRandomMonstersArray)
     {

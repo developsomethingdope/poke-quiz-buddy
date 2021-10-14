@@ -57,6 +57,7 @@ import { useStore } from 'vuex';
 import MonsterItem from "../components/MonsterItem";
 import BackToTop from "../components/BackToTop";
 import { useRoute } from 'vue-router';
+import getMonsterImageLink from '../shared/getMonsterImageLink';
 
 export default {
   name: 'MonsterDetailPage',
@@ -78,6 +79,7 @@ export default {
     const doSetIsLinkToDetail = (isLinkToDetail) => store.dispatch('doSetIsLinkToDetail', isLinkToDetail);
     const route = useRoute();
     const urlId = computed(() => route.params.url_id);
+    const { getImageLink } = getMonsterImageLink();
 
     //// FUNCTIONS
 
@@ -170,7 +172,7 @@ export default {
     const simplifyData = (data1, data2, data4, evolutionArray) =>
     {
       //const imageUrl = data1.sprites.front_default; //// backup image link
-      const imageUrl = 'https://img.pokemondb.net/artwork/large/' + data1.name + '.jpg';
+      const imageUrl = getImageLink(data1.id, data1.name);
       var newTypeArray = [];
       for (let i = 0; i < data1.types.length; i++)
       {
