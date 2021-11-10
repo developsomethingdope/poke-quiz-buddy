@@ -8,23 +8,7 @@
     </div>
     <div class="page-bottom section-quiz">
       <QuizAmountButton />
-      <div class="quiz-category-area">
-        <div v-if="categoryArray.length < 1" class="button button-quiz-category-disabled">{{ categoryButtonText }}</div>
-        <div v-else class="button button-quiz-category" @click="categoryButtonClickHandler">{{ categoryButtonText }}</div>
-        <div v-show="isShowCategorySelection" class="selection-quiz-category">
-          <div class="order-selection-category">
-            <span v-if="isCategoryAscendOrder" @click="descendOrderClickHandler">Change to descending order</span>
-            <span v-else @click="ascendOrderClickHandler">Change to ascending order</span>
-          </div>
-          <div 
-          v-for="(categoryItemArray, index) in categoryArray" 
-          :key="index" 
-          class="button-selection-category" 
-          @click="categorySelectClickHandler(categoryItemArray[0])" 
-          :class="categorySelected === categoryItemArray[0] ? 'button-selection-selected' : 'button-selection-unselected'"
-          >{{ categoryItemArray[0] }}</div>
-        </div>
-      </div>
+      <QuizCategoryButton />
       <div class="quiz-create-area">
         <div v-if="isEnableCreateQuizButton" class="button button-quiz-create" @click="createButtonClickHandler">Create new quiz</div>
         <div v-else class="button button-quiz-create-disabled">Create new quiz</div>
@@ -59,6 +43,7 @@ import Loading from '../components/Loading';
 import QuestionItem from '../components/QuestionItem';
 import BackToTop from '../components/BackToTop';
 import QuizAmountButton from '../components/QuizAmountButton';
+import QuizCategoryButton from '../components/QuizCategoryButton';
 
 export default {
   name: 'FavoritePage',
@@ -68,28 +53,20 @@ export default {
     Loading,
     QuestionItem,
     BackToTop,
-    QuizAmountButton
+    QuizAmountButton,
+    QuizCategoryButton
   },
   setup()
   {
     //console.log('quiz: ');
-    const categoryUrl = 'https://opentdb.com/api_category.php';
-    const stringSeperator = ':::';
     const store = useStore();
 
     const numQuestions = computed(() => store.state.quizStore.numOfQuestions);
     const doSetIsShowQuizAmountSelection = (isShowQuizAmountSelection) => store.dispatch('doSetIsShowQuizAmountSelection', isShowQuizAmountSelection);
-    
-    const categoryButtonTextInstruction = 'Select category';
-    const categoryButtonText = ref(categoryButtonTextInstruction);
+
     const categoryArray = computed(() => store.state.quizStore.categoryArray);
-    const doSetCategoryArray = (newCategoryArray) => store.dispatch('doSetCategoryArray', newCategoryArray);
     const categorySelected = computed(() => store.state.quizStore.categorySelected);
-    const doSetCategorySelected = (newCategorySelected) => store.dispatch('doSetCategorySelected', newCategorySelected);
-    const isShowCategorySelection = computed(() => store.state.generalStore.isShowQuizCategorySelection);
     const doSetIsShowQuizCategorySelection = (isShowQuizCategorySelection) => store.dispatch('doSetIsShowQuizCategorySelection', isShowQuizCategorySelection);
-    const isCategoryAscendOrder = computed(() => store.state.generalStore.isQuizCategoryAscendOrder);
-    const doSetIsQuizCategoryAscendOrder = (isQuizCategoryAscendOrder) => store.dispatch('doSetIsQuizCategoryAscendOrder', isQuizCategoryAscendOrder);
 
     const createQuizMessage = ref('');
     const isShowMessage = computed(() => store.state.quizStore.isShowMessage);
@@ -138,68 +115,11 @@ export default {
 
     const init = () =>
     {
-      if (categorySelected.value)
-      {
-        categoryButtonText.value = 'Category Selected: ' + categorySelected.value;
-      }
-      if (categoryArray.value.length < 1)
-      {
-        getCategoryData();
-      }
+      doSetIsShowMessage(false);
       if (questionsArray.value.length > 0)
       {
         isShowQuestions.value = true;
       }
-    }
-
-    const getCategoryData = async () =>
-    {
-      try
-      {
-        var newCategoryArray = [];
-        const response = await fetch(categoryUrl);
-        const dataJson = await response.json();
-        newCategoryArray = dataJson.trivia_categories;
-        newCategoryArray = addMonstersToCategory(newCategoryArray);
-        doSetCategoryArray(newCategoryArray);
-      }
-      catch(error)
-      {
-        console.log('quiz page: ', error);
-      }
-    }
-
-    const addMonstersToCategory = (categoryArrayLocal) =>
-    {
-      const monsterCategoriesArray =
-      [
-        ['Random Monsters', '1001'],
-        ['Any Category (exclude Random)', '1003']
-      ];
-      const newCategoryArray = categoryArrayLocal.map((categoryItem) => [categoryItem.name, categoryItem.id.toString()]);
-      for (let i = monsterCategoriesArray.length - 1; i > -1; i--)
-      {
-        newCategoryArray.unshift(monsterCategoriesArray[i]);
-      }
-      return newCategoryArray;
-    }
-
-    const changeOrderCategoryArray = (isDescendingOrder) =>
-    {
-      var newCategoryArray = sortAscendCategoryArray(categoryArray.value);
-      if (isDescendingOrder)
-      {
-        newCategoryArray.reverse();
-      }
-      newCategoryArray = newCategoryArray.map((categoryItemString) => categoryItemString.split(stringSeperator));
-      doSetCategoryArray(newCategoryArray);
-    }
-
-    const sortAscendCategoryArray = (categoryArrayLocal) =>
-    {
-      const newCategoryArray = categoryArrayLocal.map((categoryItemArray) => categoryItemArray.join(stringSeperator));
-      newCategoryArray.sort();
-      return newCategoryArray;
     }
 
     watch(questionsArray, () =>
@@ -211,41 +131,7 @@ export default {
       }
     });
 
-    watch(isShowCategorySelection, () =>
-    {
-      if (!isShowCategorySelection.value && categorySelected.value)
-      {
-        categoryButtonText.value = 'Category Selected: ' + categorySelected.value;
-      }
-    });
-
     //// EVENT HANDLER
-
-    const categoryButtonClickHandler = () =>
-    {
-      doSetIsShowQuizCategorySelection(true);
-      categoryButtonText.value = categoryButtonTextInstruction;
-      doSetIsShowMessage(false);
-    }
-
-    const categorySelectClickHandler = (category) =>
-    {
-      doSetCategorySelected(category);
-      doSetIsShowQuizCategorySelection(false);
-      categoryButtonText.value = 'Category Selected: ' + category;
-    }
-
-    const ascendOrderClickHandler = () =>
-    {
-      changeOrderCategoryArray(false);
-      doSetIsQuizCategoryAscendOrder(true);
-    }
-
-    const descendOrderClickHandler = () =>
-    {
-      changeOrderCategoryArray(true);
-      doSetIsQuizCategoryAscendOrder(false);
-    }
 
     const createButtonClickHandler = () =>
     {
@@ -317,7 +203,7 @@ export default {
 
     init();
     
-    return { categoryArray, categorySelected, categoryButtonText, categoryButtonClickHandler, isShowCategorySelection, categorySelectClickHandler, isCategoryAscendOrder, ascendOrderClickHandler, descendOrderClickHandler, createButtonClickHandler, createQuizMessage, isShowMessage, questionsArray, isEnableCreateQuizButton, isShowQuestions, incompleteIdObjectsArray, statusText, resetButtonClickHandler };
+    return { createButtonClickHandler, createQuizMessage, isShowMessage, questionsArray, isEnableCreateQuizButton, isShowQuestions, incompleteIdObjectsArray, statusText, resetButtonClickHandler };
   }
 }
 </script>

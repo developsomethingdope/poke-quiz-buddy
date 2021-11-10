@@ -8,7 +8,7 @@
     </div>
 
     <div class="page-bottom section-about" :class="generalStore.isFavoriteAbout && 'section-about-favorite'">
-      <div class="section-subtitle">Poke-Quiz-Buddy v1.4</div>
+      <div class="section-subtitle">Poke-Quiz-Buddy v1.5</div>
       <div class="about-favorite">
         <div class="favorite-toggle">
           <div v-if="generalStore.isFavoriteAbout" class="toggle-label">Favorite</div>
@@ -31,7 +31,7 @@
       <p>
         Source: <a href="https://github.com/developsomethingdope/poke-quiz-buddy">GitHub</a><br />
         See more: <a href="https://develop-something-dope.netlify.app">My Portfolio website</a><br />
-        About me: <a href="https://www.linkedin.com/in/edward-kwong-03a783184">Linkedin</a><br /><br />
+        About me: <a href="https://www.linkedin.com/in/ed-kwong">LinkedIn</a><br /><br />
         Copyright &copy; {{ currentYear }}
       </p>
     </div> <!-- end page-bottom -->
