@@ -61,6 +61,56 @@ const getQuizQuestions = () =>
     doSetIncompleteIdObjectsArray(newIncompleteArray);
   }
 
+  const betterRandomArray = (oldArray, newArray) =>
+  {
+    var betterArray = newArray;
+    let sameIdCount = 0;
+    let isBetterRandomNeeded = false;
+    for (let i = 0; i < oldArray.length; i++)
+    {
+      //console.log('better oldId: ', oldArray[i].id);
+      //console.log('better newId: ', newArray[i].id);
+      if (oldArray[i].id === newArray[i].id)
+      {
+        if (('isCorrect' in oldArray[i]) && oldArray[i].isCorrect)
+        {
+          isBetterRandomNeeded = true;
+          break;
+        }
+        sameIdCount++;
+        if (sameIdCount === Math.round(oldArray.length/2))
+        {
+          isBetterRandomNeeded = true;
+          break;
+        }
+      }
+    }
+
+    if (isBetterRandomNeeded)
+    {
+      betterArray = [];
+      for (let j = 0; j < oldArray.length; j++)
+      {
+        if (j % 2 !== 0)
+        {
+          continue;
+        }
+        if ((j === oldArray.length - 1) && (oldArray.length % 2 !== 0))
+        {
+          betterArray.push(oldArray[1]);
+          betterArray[0] = oldArray[j];
+        }
+        else
+        {
+          betterArray.push(oldArray[j+1]);
+          betterArray.push(oldArray[j]);
+        }
+      }
+      //console.log('better array: ', betterArray);
+    }
+    return betterArray;
+  }
+
   //// MONSTER FUNCTIONS
   
   const getMonsterQuestions = async (numQuestions) =>
@@ -243,9 +293,9 @@ const getQuizQuestions = () =>
     }
   }
 
-  const resetQuestions = (questionArray) =>
+  const resetQuestions = (questionsArray) =>
   {
-    const newQuestionsArray = [...questionArray];
+    var newQuestionsArray = [...questionsArray];
     for (const questionItem of newQuestionsArray)
     {
       questionItem.isAnswerSelected = false;
@@ -259,10 +309,13 @@ const getQuizQuestions = () =>
       }
       if (questionItem.type !== 'boolean')
       {
+        const oldAnswersArray = [...questionItem.answers];
         questionItem.answers.sort(() => Math.random() - 0.5);
+        questionItem.answers = betterRandomArray(oldAnswersArray, questionItem.answers);
       }
     }
     newQuestionsArray.sort(() => Math.random() - 0.5);
+    newQuestionsArray = betterRandomArray(questionsArray, newQuestionsArray);
     doSetQuestionsArray(newQuestionsArray);
     getIncompleteIdObjectsArray(newQuestionsArray);
   }
